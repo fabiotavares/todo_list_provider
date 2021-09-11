@@ -8,6 +8,7 @@ class TodoListField extends StatelessWidget {
   final ValueNotifier<bool> obscureTextVN;
   final TextEditingController? controller;
   final FormFieldValidator<String>? validator;
+  final FocusNode? focusNode;
 
   TodoListField({
     Key? key,
@@ -16,6 +17,7 @@ class TodoListField extends StatelessWidget {
     this.obscureText = false,
     this.controller,
     this.validator,
+    this.focusNode,
   })  :
         // garantindo que, se o obscureText for true, o suffixIconButton seja nulo
         // pois não posso ter os dois ao mesmo tempo, onde meu ícone eye fica inutilizado
@@ -63,6 +65,7 @@ class TodoListField extends StatelessWidget {
                     : null),
           ),
           obscureText: obscureTextValue,
+          focusNode: focusNode,
         );
       },
     );

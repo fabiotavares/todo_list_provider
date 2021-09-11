@@ -20,6 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailEC = TextEditingController();
   final _passwordEC = TextEditingController();
+  final _emailFocus = FocusNode();
 
   @override
   void dispose() {
@@ -35,10 +36,17 @@ class _LoginPageState extends State<LoginPage> {
     // definindo um listener para o login
     DefaultListenerNotifier(changeNotifier: context.read<LoginController>()).listener(
       context: context,
+      everCallback: (notifier, listenerInstance) {
+        if (notifier is LoginController) {
+          if (notifier.hasInfo) {
+            Messages.of(context).showInfo(notifier.infoMessage!);
+          }
+        }
+      },
       successVoidCallback: (notifier, listenerInstance) {
         listenerInstance.dispose();
         Messages.of(context).showInfo('Login efetuado com sucesso');
-        print('Login efeturado com sucesso!!!!');
+        print('Login efetuado com sucesso!!!!');
       },
     );
   }
@@ -64,7 +72,7 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(height: 10),
+                  SizedBox(height: 20),
                   TodoListLogo(),
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -78,6 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                           TodoListField(
                             label: 'E-mail',
                             controller: _emailEC,
+                            focusNode: _emailFocus,
                             validator: Validatorless.multiple([
                               Validatorless.required('E-mail obrigatório'),
                               Validatorless.email('E-mail inválido'),
@@ -98,7 +107,15 @@ class _LoginPageState extends State<LoginPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               TextButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  if (_emailEC.text.isNotEmpty) {
+                                    // recuperar senha
+                                    context.read<LoginController>().forgotPassword(_emailEC.text);
+                                  } else {
+                                    _emailFocus.requestFocus();
+                                    Messages.of(context).showError('Digite um email para recuperar a senha');
+                                  }
+                                },
                                 child: Text('Esqueceu sua senha?'),
                               ),
                               ElevatedButton(
