@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:todo_list_provider/app/exception/auth_exception.dart';
 
 import 'package:todo_list_provider/app/repositories/user/user_repository.dart';
@@ -71,5 +72,52 @@ class UserRepositoryImpl implements UserRepository {
       print(s);
       throw AuthException(message: 'Erro ao resetar senha');
     }
+  }
+
+  @override
+  Future<User?> googleLogin() async {
+    List<String>? loginMethods;
+    try {
+      final googleSignIn = GoogleSignIn();
+      final googleUser = await googleSignIn.signIn();
+
+      if (googleUser != null) {
+        // garantindo que o usuário já não exista com login de email/senha
+        loginMethods = await _firebaseAuth.fetchSignInMethodsForEmail(googleUser.email);
+
+        if (loginMethods.contains('password')) {
+          throw AuthException(
+              message:
+                  'Você já usou esse e-mail para cadastro! Caso tenha esquecido a senha, clique no link para recuperá-la.');
+        } else {
+          // garantindo login via google
+          final googleAuth = await googleUser.authentication;
+          final firebaseCredencial = GoogleAuthProvider.credential(
+            accessToken: googleAuth.accessToken,
+            idToken: googleAuth.idToken,
+          );
+          final userCredencial = await _firebaseAuth.signInWithCredential(firebaseCredencial);
+          return userCredencial.user;
+        }
+      }
+    } on FirebaseAuthException catch (e, s) {
+      print(e);
+      print(s);
+
+      if (e.code == 'account-exists-with-different-credential') {
+        throw AuthException(message: '''
+      Login inválido! Você se registrou aqui com os seguintes provedores:
+      ${loginMethods?.join(',')}
+      ''');
+      } else {
+        throw AuthException(message: 'Erro ao realizar login');
+      }
+    }
+  }
+
+  @override
+  Future<void> googleLogout() async {
+    await GoogleSignIn().signOut();
+    _firebaseAuth.signOut();
   }
 }

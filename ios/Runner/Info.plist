@@ -41,10 +41,24 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+
 	<key>NSAppTransportSecurity</key>
 	<dict>
     	<key>NSAllowsLocalNetworking</key>
     	<true/>
 	</dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- TODO Replace this value: -->
+				<!-- Copied from GoogleService-Info.plist key REVERSED_CLIENT_ID -->
+				<string>com.googleusercontent.apps.985862246597-9oaigln9iejcgqv975vra9qd3sccqhk7</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
