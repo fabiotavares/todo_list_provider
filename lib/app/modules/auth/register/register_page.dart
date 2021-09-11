@@ -54,8 +54,7 @@ class _RegisterPageState extends State<RegisterPage> {
     // });
 
     // após criação da minha estrutura fica mais simples, assim:
-    final defaultListener = DefaultListenerNotifier(changeNotifier: context.read<RegisterController>());
-    defaultListener.listener(
+    DefaultListenerNotifier(changeNotifier: context.read<RegisterController>()).listener(
       context: context,
       successVoidCallback: (notifier, listenerInstance) {
         // o que fazer se deu sucesso:

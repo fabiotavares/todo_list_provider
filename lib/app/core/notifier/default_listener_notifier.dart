@@ -34,7 +34,6 @@ class DefaultListenerNotifier {
       } else if (changeNotifier.isSuccess) {
         // executar a ação definida para o caso de sucesso
         successVoidCallback(changeNotifier, this);
-        Messages.of(context).showInfo('Usuário cadastrado com sucesso');
       }
     });
   }
