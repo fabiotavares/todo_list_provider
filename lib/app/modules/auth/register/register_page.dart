@@ -1,10 +1,73 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:todo_list_provider/app/core/notifier/default_listener_notifier.dart';
 import 'package:todo_list_provider/app/core/ui/theme_extensions.dart';
 import 'package:todo_list_provider/app/core/widget/todo_list_field.dart';
 import 'package:todo_list_provider/app/core/widget/todo_list_logo.dart';
+import 'package:todo_list_provider/app/modules/auth/register/register_controller.dart';
+import 'package:validatorless/validatorless.dart';
 
-class RegisterPage extends StatelessWidget {
-  const RegisterPage({Key? key}) : super(key: key);
+class RegisterPage extends StatefulWidget {
+  RegisterPage({Key? key}) : super(key: key);
+
+  @override
+  _RegisterPageState createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailEC = TextEditingController();
+  final _passwordEC = TextEditingController();
+  final _confirmPasswordEC = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailEC.dispose();
+    _passwordEC.dispose();
+    _confirmPasswordEC.dispose();
+    // context.read<RegisterController>().removeListener(() {});
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // é aqui que irei receber o resultado do registro
+    // ficar escutando o erro ou sucesso da controller
+    // final controller = context.read<RegisterController>();
+    // controller.addListener(() {
+    //   var success = controller.success;
+    //   var error = controller.error;
+
+    //   if (success) {
+    //     // volta pra tela de login (também poderia ir direto para a home)
+    //     Navigator.of(context).pop();
+    //   } else if (error != null && error.isNotEmpty) {
+    //     // mostra mensagem de erro
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //       SnackBar(
+    //         content: Text(error),
+    //         backgroundColor: Colors.red,
+    //       ),
+    //     );
+    //   }
+    // });
+
+    // após criação da minha estrutura fica mais simples, assim:
+    final defaultListener = DefaultListenerNotifier(changeNotifier: context.read<RegisterController>());
+    defaultListener.listener(
+      context: context,
+      successVoidCallback: (notifier, listenerInstance) {
+        // o que fazer se deu sucesso:
+        listenerInstance.dispose();
+        Navigator.of(context).pop();
+      },
+      // atributo opcional:
+      // errorCallback: (notifier, listenerInstance) {
+      //   print('Deu ruim');
+      // },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,24 +127,57 @@ class RegisterPage extends StatelessWidget {
               vertical: 20,
             ),
             child: Form(
+              key: _formKey,
               child: Column(
                 children: [
-                  TodoListField(label: 'E-mail'),
-                  SizedBox(height: 20),
                   TodoListField(
-                    label: 'Senha',
-                    obscureText: true,
+                    label: 'E-mail',
+                    controller: _emailEC,
+                    validator: Validatorless.multiple(
+                      [
+                        Validatorless.required('E-mail obrigatório'),
+                        Validatorless.email('E-mail inválido'),
+                      ],
+                    ),
                   ),
                   SizedBox(height: 20),
                   TodoListField(
-                    label: 'Confirma senha',
+                    label: 'Senha',
+                    controller: _passwordEC,
                     obscureText: true,
+                    validator: Validatorless.multiple(
+                      [
+                        Validatorless.required('Senha obrigatória'),
+                        Validatorless.min(6, 'Senha deve ter pelo menos 6 caracteres'),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TodoListField(
+                    label: 'Confirma Senha',
+                    controller: _confirmPasswordEC,
+                    obscureText: true,
+                    validator: Validatorless.multiple(
+                      [
+                        Validatorless.required('Confirma Senha obrigatória'),
+                        Validatorless.compare(_passwordEC, 'Senha diferente de Confirma Senha'),
+                        // como extender as validações com possibilidades personalizadas
+                        // Validators.compare(passwordEC, 'Senha diferente de Confirma Senha'),
+                      ],
+                    ),
                   ),
                   SizedBox(height: 20),
                   Align(
                     alignment: Alignment.bottomRight,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        final formValid = _formKey.currentState?.validate() ?? false;
+                        if (formValid) {
+                          final email = _emailEC.text;
+                          final password = _passwordEC.text;
+                          context.read<RegisterController>().registerUser(email, password);
+                        }
+                      },
                       child: Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: Text('Salvar'),
